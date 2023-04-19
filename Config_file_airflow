@@ -1,0 +1,51 @@
+from airflow.operators.python_operator import PythonOperator
+from airflow.operators.dummy_operator import DummyOperator
+from airflow import DAG
+from airflow.utils import timezone
+from airflow.operators.postgres_operator import PostgresOperator
+from airflow.handlers.postgres_handler import PostgresTaskHandler
+
+default_args = {
+    'owner': 'me',
+    'start_date': timezone.utcnow(),
+}
+
+dag = DAG(
+    'my_dag_id',
+    default_args=default_args,
+    schedule_interval='0 0 * * *',  # Once a day at midnight
+    logging=PostgresTaskHandler(),
+)
+
+start_task = DummyOperator(
+    task_id='start_task',
+    dag=dag,
+)
+
+# Add your tasks here
+
+end_task = DummyOperator(
+    task_id='end_task',
+    dag=dag,
+)
+
+# Configure PostgresOperator to create a table or insert logs into an existing table
+create_table_task = PostgresOperator(
+    task_id='create_table_task',
+    dag=dag,
+    sql='''CREATE TABLE IF NOT EXISTS dag_log (
+            id SERIAL PRIMARY KEY,
+            dag_id VARCHAR(250) NOT NULL,
+            task_id VARCHAR(250) NOT NULL,
+            event VARCHAR(250) NOT NULL,
+            execution_date TIMESTAMP NOT NULL,
+            owner VARCHAR(250) NOT NULL,
+            extra VARCHAR(5000),
+            created_at TIMESTAMP NOT NULL
+        );
+    '''
+)
+
+# Set the task dependencies
+start_task >> create_table_task
+end_task << create_table_task
