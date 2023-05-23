@@ -18,8 +18,12 @@ def sparkwithhiveone():
         sparkwithhive.sql("DROP TABLE IF EXISTS table_a")
         sparkwithhive.sql("CREATE TABLE IF EXISTS table_a")
         df1= sparkwithhive.sql("SELECT COUNT(*) FROM table_a").collect()[0][0]
-        df2= sparkwithhive.sql("SELECT COUNT(*) FROM table_a").collect()[0][0]
+        df2= sparkwithhive.sql("SELECT COUNT(*) FROM table_b").collect()[0][0]
         
+        if (df1==df2);
+            sparkwithhive.sql("SELECT COUNT(*) FROM table_a").collect()[0][0]
+            sparkwithhive.sql("SELECT COUNT(*) FROM table_b").collect()[0][0]
+        else : print("count mismatch in above table")
     except Exception as e:
         print("Unexpected error:", e)
         raise
